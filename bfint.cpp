@@ -9,6 +9,7 @@
 std::string rmNonBfChars(std::string dirtyString);
 bool validBrackets(std::string program);
 std::string cleanProgInput(std::string dirtyInput);
+char fetchNextInput(std::string &progInput);
 
 int main() {
     // Initializing and getting variables START
@@ -37,11 +38,7 @@ int main() {
     programInput = cleanProgInput(programInput);
 
     // Run the program
-    for (int i = 0; i < program.size(); i++) {
-        // Set the current instruction
-        char instruction = program.at(i);
-
-    }
+    
     return 0;
 }
 
@@ -119,4 +116,14 @@ std::string cleanProgInput(std::string dirtyInput) {
         }
     }
     return cleanInput;
+}
+
+char fetchNextInput(std::string &progInput) {
+    // If there is nothing left in the program input, return ascii value 0
+    if (progInput.empty()) {
+        return '\0';
+    }
+    char charReturn = progInput.at(0);
+    progInput.erase(0);
+    return charReturn;
 }
