@@ -7,34 +7,39 @@
 #include <vector>
 
 std::string rmNonBfChars(std::string dirtyString);
+bool validBrackets(std::string program);
+std::string cleanProgInput(std::string dirtyInput);
 
 int main() {
     // Initializing and getting variables START
-
     // For these const variables, add one to get the true size since they start at index 0
     // So if you want 1000 cells, type 999 below
     const int cellNum = 999; // Number of cells on the tape
     const int cellSize = 255; // How many values each cell has before overflowing; standard is 8 bits of info, or 256 potential values
+    std::string program = "";
     std::string programInput;
 
     std::vector<int> cellTape(cellNum, 0);
-    std::string program = "";
-    char instruction = ' ';
 
     std::cout << "Input some bf programming text" << std::endl;
     std::getline(std::cin, program);
+    // Clean up the program so it only contains the 8 bf characters
     program = rmNonBfChars(program);
-
-    std::cout << "Now give the console input the program takes (If any)" << std::endl; // Go to top of program to see how to input newlines
+    // Then check if the brackets make sense. Check readme for more info
+    if (!validBrackets(program)) {
+        std::cout << "Those brackets didn't make sense. Look at the ReadMe.md file for more information." << std::endl;
+        return 0;
+    }
+    std::cout << "Now give the console input the program takes (If any)" << std::endl; // Go to top of this file to see how to input newlines
     std::getline(std::cin, programInput);
     // Initializing and getting variables END
-    // Clean up the program so it only contains the 8 bf characters
-    
+    // Convert the user newlines into actual newline characters
+    programInput = cleanProgInput(programInput);
 
     // Run the program
     for (int i = 0; i < program.size(); i++) {
         // Set the current instruction
-        instruction = program.at(i);
+        char instruction = program.at(i);
 
     }
     return 0;
@@ -51,4 +56,67 @@ std::string rmNonBfChars(std::string dirtyString) {
         }
     }
     return cleanString;
+}
+
+bool validBrackets(std::string program) {
+    int bracketVal = 0;
+    for (int i = 0; i < program.size(); i++) {
+        char currentChar = program.at(i);
+        if (currentChar == '[') {
+            bracketVal++;
+        }
+        else if (currentChar == ']') {
+            bracketVal--;
+        }
+        
+        // Check if bracketVal is less than 0. If it is less than 0, it doesn't make sense
+        if (bracketVal < 0) {
+            return false;
+        }
+    }
+    if (bracketVal != 0) {
+        return false;
+    }
+    return true;
+}
+
+std::string cleanProgInput(std::string dirtyInput) {
+    std::string cleanInput = "";
+    char currentChar = ' ';
+    char nextChar = ' ';
+    for (int i = 0; i < dirtyInput.size(); i++) {
+        currentChar = dirtyInput.at(i);
+        // Basically I am safely seeing if this is the last character in the string. 
+        // If it is, make the nextChar variable a space (or any character other than \ or n) which will make it return the right string back
+        if (i + 1 >= dirtyInput.size()) {
+            nextChar = ' ';
+        }
+        // If there IS a next character then set it as the next character
+        else {
+            nextChar = dirtyInput.at(i + 1);
+        }
+
+        // This next bit is to deal with backslashes and newlines. 
+
+        // If current character isn't a backslash, just add it to the clean program input
+        if (currentChar != '\\') {
+            cleanInput.push_back(currentChar);
+        }
+        // If the current character is a backslash AND the next character is n, add a newline character to the clean program input and increment i because it doesn't need to check the next char
+        else if (currentChar == '\\' && nextChar == 'n') {
+            cleanInput.push_back('\n');
+            ++i;
+        }
+        // Similar thing with the backslash character
+        else if (currentChar == '\\' && nextChar == '\\') {
+            cleanInput.push_back('\\');
+            ++i;
+        }
+        // The only way this block is reached is if the current character is \ and the next character isn't \ or n
+        // I have decided that when this happens (Which the user shouldn't be doing) just add the backslash as given
+        else {
+            cleanInput.push_back('\\');
+        }
+    }
+    return cleanInput;
 }
