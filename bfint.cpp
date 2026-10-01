@@ -5,22 +5,33 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstdlib>
 
+// Initialize constant variables
+// For these const variables, add one to get the true size since they start at index 0
+// So if you want 1000 cells, type 999 below
+const int cellNum = 999; // Number of cells on the tape
+const int cellSize = 255; // How many values each cell has before overflowing; standard is 8 bits of info, or 256 potential values. Bad things can happen if you make this number bigger than 255
+
+// Declare functions
 std::string rmNonBfChars(std::string dirtyString);
 bool validBrackets(std::string program);
 std::string cleanProgInput(std::string dirtyInput);
 char fetchNextInput(std::string &progInput);
+void runBfCode(std::string prog, std::string progInp);
+// Functions for executing bf instructions
+void incrementCell(std::vector<int> &cellStrip, int cellPointer);
+void decreaseCell(std::vector<int> &cellStrip, int cellPointer);
+void moveRight(int &cellPointer);
+void moveLeft(int &cellPointer);
+void storeInput(std::vector<int> &cellStrip, int cellPointer);
+void printCell(std::vector<int> cellStrip, int cellPointer);
+
 
 int main() {
-    // Initializing and getting variables START
-    // For these const variables, add one to get the true size since they start at index 0
-    // So if you want 1000 cells, type 999 below
-    const int cellNum = 999; // Number of cells on the tape
-    const int cellSize = 255; // How many values each cell has before overflowing; standard is 8 bits of info, or 256 potential values
+    // Initializing and getting variables START ~~~~~~~~~~
     std::string program = "";
-    std::string programInput;
-
-    std::vector<int> cellTape(cellNum, 0);
+    std::string programInput = "";
 
     std::cout << "Input some bf programming text" << std::endl;
     std::getline(std::cin, program);
@@ -33,7 +44,7 @@ int main() {
     }
     std::cout << "Now give the console input the program takes (If any)" << std::endl; // Go to top of this file to see how to input newlines
     std::getline(std::cin, programInput);
-    // Initializing and getting variables END
+    // Initializing and getting variables END ~~~~~~~~~~~~
     // Convert the user newlines into actual newline characters
     programInput = cleanProgInput(programInput);
 
@@ -41,7 +52,7 @@ int main() {
     
     return 0;
 }
-
+// Initialize functions
 std::string rmNonBfChars(std::string dirtyString) {
     std::string cleanString = "";
     char currentChar;
@@ -126,4 +137,45 @@ char fetchNextInput(std::string &progInput) {
     char charReturn = progInput.at(0);
     progInput.erase(0);
     return charReturn;
+}
+
+void runBfCode(std::string prog, std::string progInp) {
+    std::vector<int> cellTape(cellNum, 0);
+    int currentPosition = 0; // Current position on the tape of cells
+    // Double check the program brackets make sense
+    if (!validBrackets(prog)) {
+        std::cout << "Fatal error; Invalid brackets. This message shouldn't be appearing, please report this bug to Jorttle." << std::endl;
+        std::exit(0);
+    }
+
+}
+
+// Functions for executing bf instructions
+
+void incrementCell(std::vector<int> &cellStrip, int cellPointer) {
+    cellStrip[cellPointer]++;
+    if (cellStrip.at(cellPointer) > cellSize) {
+        cellStrip[cellPointer] = 0;
+    }
+}
+
+void decreaseCell(std::vector<int> &cellStrip, int cellPointer) {
+    cellStrip[cellPointer]--;
+    if (cellStrip.at(cellPointer) < 0) {
+        cellStrip[cellPointer] = cellSize;
+    }
+}
+
+void moveRight(int &cellPointer) {
+    cellPointer++;
+    if (cellPointer > cellNum) {
+        cellPointer = 0;
+    }
+}
+
+void moveLeft(int &cellPointer) {
+    cellPointer--;
+    if (cellPointer < 0) {
+        cellPointer = cellNum;
+    }
 }
