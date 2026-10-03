@@ -36,8 +36,10 @@ Since the newline character is used to declare end of getline() in C++, instead 
 
 \n
 
-If you want to input the backslash character (\) you must enter two like this: \\
+If you want to input the backslash character (\\) you must enter two like this: \\\\
 
 # TODO
 
 I need to make it actually interpret BF code
+
+I also want to add functionality to print out the entire cell tape. The user would put \i to get the cell tape as integers, \b to get it as binary, or \a to get it as ascii characters.

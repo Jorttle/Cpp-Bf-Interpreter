@@ -6,19 +6,30 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <algorithm>
 
 // Initialize constant variables
 // For these const variables, add one to get the true size since they start at index 0
 // So if you want 1000 cells, type 999 below
 const int cellNum = 999; // Number of cells on the tape
-const int cellSize = 255; // How many values each cell has before overflowing; standard is 8 bits of info, or 256 potential values. Bad things can happen if you make this number bigger than 255
+const int cellSize = 255;   /* How many values each cell has before overflowing; standard is 8 bits of info, or 256 potential values.
+                            Bad things can happen if you make this number bigger than 255 */
 
 // Declare functions
-std::string rmNonBfChars(std::string dirtyString);
+bool isBfChar(char c);
+std::string rmNonBfChars(std::string dirtyString);  /* Obviously removes non-BF characters, but also does other stuff. If the user's program has \i, \b, or \a, 
+                                                    it will turn it into their respective letters (i, b, or a).
+                                                    This is because the I want the user to be able to print out the current cell tape in integer, binary, or ascii 
+                                                    If the user puts multiple backslashes in a row before i, b, or a, it will still include the i, b, or a. 
+                                                    Example: "\\i" will add "I"
+                                                    Case does not matter, so \i and \I both add "I" to the output
+                                                    */
 bool validBrackets(std::string program);
 std::string cleanProgInput(std::string dirtyInput);
 char fetchNextInput(std::string &progInput);
-void runBfCode(std::string prog, std::string progInp);
+std::string runBfCode(std::string prog, std::string progInp);
+std::string retFormattedTape(std::vector<std::string> cellStrip, char formatType); // Format type must be 'A', 'B', or 'I'
+std::string toBinary(int n);
 // Functions for executing bf instructions
 void incrementCell(std::vector<int> &cellStrip, int cellPointer);
 void decreaseCell(std::vector<int> &cellStrip, int cellPointer);
@@ -27,8 +38,12 @@ void moveLeft(int &cellPointer);
 void storeInput(std::vector<int> &cellStrip, int cellPointer);
 void printCell(std::vector<int> cellStrip, int cellPointer);
 
-
 int main() {
+    // TEMPORARY MESSAGE WARNING THAT PROJECT ISN'T COMPLETE
+    std::cout << "This project is not yet finished!" << std::endl;
+    return 0;
+    // END TEMP MESSAGE
+
     // Initializing and getting variables START ~~~~~~~~~~
     std::string program = "";
     std::string programInput = "";
@@ -49,19 +64,49 @@ int main() {
     programInput = cleanProgInput(programInput);
 
     // Run the program
-    
+    std::cout << runBfCode(program, programInput) << std::endl;
     return 0;
 }
 // Initialize functions
+bool isBfChar(char c) {
+    if (c == '<' || c == '>' || c == ',' || c == '.' || c == '[' || c == ']' || c == '-' || c == '+') {
+        return true;
+    }
+    return false;
+}
+
 std::string rmNonBfChars(std::string dirtyString) {
+    // I copied some code from cleanProgInput()
     std::string cleanString = "";
-    char currentChar;
+    char currentChar = ' ';
+    char nextChar = ' ';
+    // Loop through every character in the given string
     for (int i = 0; i < dirtyString.size(); i++) {
         currentChar = dirtyString.at(i);
-        // There is absolutely no way this is the best way to check for if a char is in a string but it works
-        if (currentChar == '<' || currentChar == '>' || currentChar == ',' || currentChar == '.' || currentChar == '[' || currentChar == ']' || currentChar == '-' || currentChar == '+') {
+        if (i + 1 >= dirtyString.size()) {nextChar = ' ';} // If we are at the last character, then set the "nextChar" variable to a space to not break anything
+        else {nextChar = dirtyString.at(i + 1);}
+        // next part
+        // If current character isn't a backslash, check if it is a bf character TODO
+        if (isBfChar(currentChar)) {
             cleanString.push_back(currentChar);
         }
+        else if (currentChar != '\\') {} // Program shouldn't do anything if current char isn't a bf char or backslash
+        // Convert \i \b and \a. ++i is used because the program doesn't have to read the next character. Even if it did, it wouldn't make a difference.
+        else if (currentChar == '\\' && (nextChar == 'i' || nextChar == 'I')) {
+            cleanString.push_back('I');
+            ++i;
+        }
+        else if (currentChar == '\\' && (nextChar == 'b' || nextChar == 'B')) {
+            cleanString.push_back('B');
+            ++i;
+        }
+        else if (currentChar == '\\' && (nextChar == 'a' || nextChar == 'A')) {
+            cleanString.push_back('A');
+            ++i;
+        }
+        // If none of the above conditions are true that means that the current character is backslash and the next character is unexpected.
+        // Example: \1, \q, \[
+        // In this case we don't do anything
     }
     return cleanString;
 }
@@ -139,15 +184,62 @@ char fetchNextInput(std::string &progInput) {
     return charReturn;
 }
 
-void runBfCode(std::string prog, std::string progInp) {
+std::string runBfCode(std::string prog, std::string progInp) {
     std::vector<int> cellTape(cellNum, 0);
     int currentPosition = 0; // Current position on the tape of cells
     // Double check the program brackets make sense
     if (!validBrackets(prog)) {
-        std::cout << "Fatal error; Invalid brackets. This message shouldn't be appearing, please report this bug to Jorttle." << std::endl;
-        std::exit(0);
+        std::cout << "Fatal error; Invalid brackets. This message shouldn't be appearing, please report this bug to Jorttle with code 3nly5hb888" << std::endl;
+        std::exit(1);
+    }
+    // TODO: add bf code running functionality
+    return "";
+}
+
+std::string retFormattedTape(std::vector<int> cellStrip, char formatType, std::string separator = " ") { // formatType must be 'A', 'B', or 'I'
+    std::string retStr = "";
+    if (formatType != 'A' && formatType != 'B' && formatType != 'I') {
+        std::cout << "\nSomething has gone horribly wrong. Please report this bug to Jorttle with code 1lgzezvg0a" << std::endl;
+        exit(1);
+    }
+    // Return Ascii
+    if (formatType == 'A') {
+        for (int i = 0; i < cellStrip.size(); ++i) {
+            int currentVal = cellStrip.at(i);
+            if (i + 1 == cellStrip.size()) {separator = "";} // If this is the last loop in the for loop, no need for a final separator
+            retStr += static_cast<char>(currentVal) + separator;
+        }
+    }
+    // Return binary
+    else if (formatType == 'B') {
+        for (int i = 0; i < cellStrip.size(); ++i) {
+            int currentVal = cellStrip.at(i);
+            if (i + 1 == cellStrip.size()) {separator = "";} // If this is the last loop in the for loop, no need for a final separator
+            retStr += toBinary(currentVal) + separator;
+        }
+    }
+    // Return int
+    else if (formatType == 'I') {
+        for (int i = 0; i < cellStrip.size(); ++i) {
+            int currentVal = cellStrip.at(i);
+            if (i + 1 == cellStrip.size()) {separator = "";} // If this is the last loop in the for loop, no need for a final separator
+            retStr += std::to_string(currentVal) + separator;
+        }
     }
 
+    return retStr;
+}
+
+std::string toBinary(int n) {
+    if (n == 0) return "0";
+
+    std::string s;
+    while (n > 0) {
+        s += '0' + (n & 1);
+        n >>= 1;
+    }
+    std::reverse(s.begin(), s.end());
+    return s;
 }
 
 // Functions for executing bf instructions
