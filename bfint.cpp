@@ -17,7 +17,7 @@ const int cellSize = 255;   /* How many values each cell has before overflowing;
 
 // Declare functions
 bool isBfChar(char c);
-std::string rmNonBfChars(std::string dirtyString);  /* Obviously removes non-BF characters, but also does other stuff. If the user's program has \i, \b, or \a, 
+std::string rmNonBfChars(std::string dirtyString);  /* Obviously removes non-BF characters, but not always. If the user's program has \i, \b, or \a, 
                                                     it will turn it into their respective letters (i, b, or a).
                                                     This is because the I want the user to be able to print out the current cell tape in integer, binary, or ascii 
                                                     If the user puts multiple backslashes in a row before i, b, or a, it will still include the i, b, or a. 
@@ -28,7 +28,7 @@ bool validBrackets(std::string program);
 std::string cleanProgInput(std::string dirtyInput);
 char fetchNextInput(std::string &progInput);
 std::string runBfCode(std::string prog, std::string progInp);
-std::string retFormattedTape(std::vector<std::string> cellStrip, char formatType); // Format type must be 'A', 'B', or 'I'
+std::string retFormattedTape(std::vector<int> cellStrip, char formatType, int cellPointer, std::string separator = " ", std::string emphasizer = "***"); // Format type must be 'A', 'B', or 'I'
 std::string toBinary(int n);
 // Functions for executing bf instructions
 void incrementCell(std::vector<int> &cellStrip, int cellPointer);
@@ -41,6 +41,11 @@ void printCell(std::vector<int> cellStrip, int cellPointer);
 int main() {
     // TEMPORARY MESSAGE WARNING THAT PROJECT ISN'T COMPLETE
     std::cout << "This project is not yet finished!" << std::endl;
+    // TESTING -----------------------------------------
+    // std::vector<int> v = {40, 41, 45, 50, 55};
+
+    // std::cout << retFormattedTape(v, 'B', 3) << std::endl;
+    // END TESTING -------------------------------------
     return 0;
     // END TEMP MESSAGE
 
@@ -196,18 +201,26 @@ std::string runBfCode(std::string prog, std::string progInp) {
     return "";
 }
 
-std::string retFormattedTape(std::vector<int> cellStrip, char formatType, std::string separator = " ") { // formatType must be 'A', 'B', or 'I'
-    std::string retStr = "";
+std::string retFormattedTape(std::vector<int> cellStrip, char formatType, int cellPointer, std::string separator, std::string emphasizer) { 
+                            // |Cell Strip|             |I, A, or B|     |Pos on cell tape| |WhatSeparatesCellsOnPrint| | what to put around cell pointer
+    std::string retStr = 
+    "\n@@@@@@@@@@@@@@@@@@@"
+    "\n@ Debug Interrupt @"
+    "\n@@@@@@@@@@@@@@@@@@@"
+    "\nBegin Printing Cell Tape:"
+    "\n";
     if (formatType != 'A' && formatType != 'B' && formatType != 'I') {
         std::cout << "\nSomething has gone horribly wrong. Please report this bug to Jorttle with code 1lgzezvg0a" << std::endl;
         exit(1);
     }
+    // I don't like how much copying and pasting I had to do, but otherwise I would have to constantly see if formatType == 'A' or 'B' or 'I'
     // Return Ascii
     if (formatType == 'A') {
         for (int i = 0; i < cellStrip.size(); ++i) {
             int currentVal = cellStrip.at(i);
             if (i + 1 == cellStrip.size()) {separator = "";} // If this is the last loop in the for loop, no need for a final separator
-            retStr += static_cast<char>(currentVal) + separator;
+            if (cellPointer == i) {retStr += emphasizer + static_cast<char>(currentVal) + emphasizer + separator;} // If we are at the cell pointer value on the tape,
+            else {retStr += static_cast<char>(currentVal) + separator;}                                            // then put emphasizers around it
         }
     }
     // Return binary
@@ -215,7 +228,8 @@ std::string retFormattedTape(std::vector<int> cellStrip, char formatType, std::s
         for (int i = 0; i < cellStrip.size(); ++i) {
             int currentVal = cellStrip.at(i);
             if (i + 1 == cellStrip.size()) {separator = "";} // If this is the last loop in the for loop, no need for a final separator
-            retStr += toBinary(currentVal) + separator;
+            if (cellPointer == i) {retStr += emphasizer + toBinary(currentVal) + emphasizer + separator;} // If we are at the cell pointer value on the tape,
+            else {retStr += toBinary(currentVal) + separator;}                                            // then put emphasizers around it
         }
     }
     // Return int
@@ -223,10 +237,15 @@ std::string retFormattedTape(std::vector<int> cellStrip, char formatType, std::s
         for (int i = 0; i < cellStrip.size(); ++i) {
             int currentVal = cellStrip.at(i);
             if (i + 1 == cellStrip.size()) {separator = "";} // If this is the last loop in the for loop, no need for a final separator
-            retStr += std::to_string(currentVal) + separator;
+            if (cellPointer == i) {retStr += emphasizer + std::to_string(currentVal) + emphasizer + separator;} // If we are at the cell pointer value on the tape,
+            else {retStr += std::to_string(currentVal) + separator;}                                            // then put emphasizers around it
         }
     }
-
+    retStr +=
+    "\n@@@@@@@@@@@@@"
+    "\n@ End Debug @"
+    "\n@@@@@@@@@@@@@"
+    "\n";
     return retStr;
 }
 
